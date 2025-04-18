@@ -34,8 +34,8 @@ param (
     [ValidatePattern('^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$')]
     [string] $ProvisionerApplicationId,
 
-    [Parameter(ParameterSetName = 'Default+Provisioner')]
-    [Parameter(ParameterSetName = 'ResourceGroup+Provisioner')]
+    [Parameter(ParameterSetName = 'Default+Provisioner', Mandatory = $true)]
+    [Parameter(ParameterSetName = 'ResourceGroup+Provisioner', Mandatory = $true)]
     [string] $ProvisionerApplicationSecret,
 
     [Parameter(ParameterSetName = 'Default', Position = 0)]
@@ -51,15 +51,6 @@ param (
     [Parameter(ParameterSetName = 'ResourceGroup')]
     [Parameter(ParameterSetName = 'ResourceGroup+Provisioner')]
     [switch] $CI,
-
-    [Parameter()]
-    [ValidateSet('test', 'perf')]
-    [string] $ResourceType = 'test',
-
-    [Parameter(ParameterSetName = 'Default+Provisioner')]
-    [Parameter(ParameterSetName = 'ResourceGroup+Provisioner')]
-    [Parameter()]
-    [switch] $ServicePrincipalAuth,
 
     [Parameter()]
     [switch] $Force,
@@ -115,7 +106,7 @@ function Retry([scriptblock] $Action, [int] $Attempts = 5) {
     }
 }
 
-if ($ProvisionerApplicationId -and $ServicePrincipalAuth) {
+if ($ProvisionerApplicationId) {
     $null = Disable-AzContextAutosave -Scope Process
 
     Log "Logging into service principal '$ProvisionerApplicationId'"
@@ -152,13 +143,14 @@ if (!$ResourceGroupName) {
             exit 0
         }
     } else {
-        $serviceName = GetServiceLeafDirectoryName $ServiceDirectory
-        $BaseName, $ResourceGroupName = GetBaseAndResourceGroupNames `
-            -baseNameDefault $BaseName `
-            -resourceGroupNameDefault $ResourceGroupName `
-            -user (GetUserName) `
-            -serviceDirectoryName $serviceName `
-            -CI $CI
+        if (!$BaseName) {
+            $UserName = GetUserName
+            $BaseName = GetBaseName $UserName $ServiceDirectory
+            Log "BaseName was not set. Using default base name '$BaseName'"
+        }
+
+        # Format the resource group name like in New-TestResources.ps1.
+        $ResourceGroupName = "rg-$BaseName"
     }
 }
 
@@ -206,7 +198,7 @@ Log "Selected subscription '$subscriptionName'"
 
 if ($ServiceDirectory) {
     $root = [System.IO.Path]::Combine("$PSScriptRoot/../../../sdk", $ServiceDirectory) | Resolve-Path
-    $preRemovalScript = Join-Path -Path $root -ChildPath "remove-$ResourceType-resources-pre.ps1"
+    $preRemovalScript = Join-Path -Path $root -ChildPath 'remove-test-resources-pre.ps1'
     if (Test-Path $preRemovalScript) {
         Log "Invoking pre resource removal script '$preRemovalScript'"
 
@@ -218,7 +210,7 @@ if ($ServiceDirectory) {
     }
 
     # Make sure environment files from New-TestResources -OutFile are removed.
-    Get-ChildItem -Path $root -Filter "$ResourceType-resources.json.env" -Recurse | Remove-Item -Force:$Force
+    Get-ChildItem -Path $root -Filter test-resources.json.env -Recurse | Remove-Item -Force:$Force
 }
 
 $verifyDeleteScript = {
@@ -309,9 +301,6 @@ Run script in CI mode. Infers various environment variable names based on CI con
 
 .PARAMETER Force
 Force removal of resource group without asking for user confirmation
-
-.PARAMETER ServicePrincipalAuth
-Log in with provided Provisioner application credentials.
 
 .EXAMPLE
 Remove-TestResources.ps1 keyvault -Force

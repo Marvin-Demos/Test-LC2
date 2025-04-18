@@ -18,8 +18,8 @@ ToC node layout:
   * Client Package 2 (package level overview page)
   ...
   * Management
-    * Management Package 1 (package level overview page)
-    * Management Package 2 (package level overview page)
+    * Management Package 1
+    * Management Package 2
     ...
 
 .PARAMETER DocRepoLocation
@@ -29,14 +29,6 @@ depending on the requirements for the domain
 .PARAMETER OutputLocation
 Output location for unified reference yml file
 
-.PARAMETER ReadmeFolderRoot
-The readme folder root path, use default value here for backward compability. E.g. docs-ref-services in Java, JS, Python, api/overview/azure
-
-.PARAMETER PackageSourceOverride
-Optional parameter to supply a different package source (useful for daily dev
-docs generation from pacakges which are not published to the default feed). This
-variable is meant to be used in the domain-specific business logic in
-&$GetDocsMsTocDataFn
 #>
 
 param(
@@ -44,13 +36,7 @@ param(
   [string] $DocRepoLocation,
 
   [Parameter(Mandatory = $true)]
-  [string] $OutputLocation,
-
-  [Parameter(Mandatory = $false)]
-  [string] $ReadmeFolderRoot = 'docs-ref-services',
-
-  [Parameter(Mandatory = $false)]
-  [string] $PackageSourceOverride
+  [string] $OutputLocation
 )
 . $PSScriptRoot/common.ps1
 . $PSScriptRoot/Helpers/PSModule-Helpers.ps1
@@ -59,11 +45,10 @@ Install-ModuleIfNotInstalled "powershell-yaml" "0.4.1" | Import-Module
 
 Set-StrictMode -Version 3
 
-function GetPackageNode($package) {
+function GetClientPackageNode($clientPackage) {
   $packageInfo = &$GetDocsMsTocDataFn `
-    -packageMetadata $package `
-    -docRepoLocation $DocRepoLocation `
-    -PackageSourceOverride $PackageSourceOverride
+    -packageMetadata $clientPackage `
+    -docRepoLocation $DocRepoLocation
 
   return [PSCustomObject]@{
     name     = $packageInfo.PackageTocHeader
@@ -196,20 +181,22 @@ foreach ($service in $serviceNameList) {
   $clientPackages = $packagesForToc.Values.Where({ $_.ServiceName -eq $service -and ('client' -eq $_.Type) })
   $clientPackages = $clientPackages | Sort-Object -Property Package
   foreach ($clientPackage in $clientPackages) {
-    $packageItems += GetPackageNode -package $clientPackage
+    $packageItems += GetClientPackageNode -clientPackage $clientPackage
   }
 
   # All management packages go under a single `Management` header in the ToC
   $mgmtPackages = $packagesForToc.Values.Where({ $_.ServiceName -eq $service -and ('mgmt' -eq $_.Type) })
   $mgmtPackages = $mgmtPackages | Sort-Object -Property Package
-  $mgmtItems = @()
-  foreach ($pkg in $mgmtPackages) {
-    $mgmtItems += GetPackageNode -package $pkg
-  }
-  if ($mgmtItems) {
+  if ($mgmtPackages) {
+    $children = &$GetDocsMsTocChildrenForManagementPackagesFn `
+      -packageMetadata $mgmtPackages `
+      -docRepoLocation $DocRepoLocation
+
     $packageItems += [PSCustomObject]@{
       name     = 'Management'
-      items    = $mgmtItems
+      # There could be multiple packages, ensure this is treated as an array
+      # even if it is a single package
+      children = @($children)
     }
   }
 
@@ -223,7 +210,7 @@ foreach ($service in $serviceNameList) {
   $serviceReadmeBaseName = $service.ToLower().Replace(' ', '-').Replace('/', '-')
   $serviceTocEntry = [PSCustomObject]@{
     name            = $service;
-    href            = "~/$ReadmeFolderRoot/{moniker}/$serviceReadmeBaseName.md"
+    href            = "~/docs-ref-services/{moniker}/$serviceReadmeBaseName.md"
     landingPageType = 'Service'
     items           = @($packageItems)
   }
@@ -279,12 +266,12 @@ if ($otherPackages) {
 
       if ($null -ne $currentNode) {
         $otherPackage.DisplayName = $segments[$segments.Count - 1]
-        $currentNode.Add((GetPackageNode $otherPackage))
+        $currentNode.Add((GetClientPackageNode $otherPackage))
       }
 
     }
     else {
-      $otherPackageItems.Add((GetPackageNode $otherPackage))
+      $otherPackageItems.Add((GetClientPackageNode $otherPackage))
     }
   }
 }

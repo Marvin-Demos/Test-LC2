@@ -23,12 +23,12 @@ The body message for the pull request.
 The labels added to the PRs. Multple labels seperated by comma, e.g "bug, service"
 .PARAMETER UserReviewers
 User reviewers to request after opening the PR. Users should be a comma-
-separated list with no preceding `@` symbol (e.g. "user1,usertwo,user3")
+separated list with no preceeding `@` symbol (e.g. "user1,usertwo,user3")
 .PARAMETER TeamReviewers
 List of github teams to add as reviewers
 .PARAMETER Assignees
 Users to assign to the PR after opening. Users should be a comma-separated list
-with no preceding `@` symbol (e.g. "user1,usertwo,user3")
+with no preceeding `@` symbol (e.g. "user1,usertwo,user3")
 .PARAMETER CloseAfterOpenForTesting
 Close the PR after opening to save on CI resources and prevent alerts to code
 owners, assignees, requested reviewers, or others.
@@ -71,9 +71,7 @@ param(
 
   [boolean]$CloseAfterOpenForTesting=$false,
 
-  [boolean]$OpenAsDraft=$false,
-
-  [boolean]$AddBuildSummary=($null -ne $env:SYSTEM_TEAMPROJECTID)
+  [boolean]$OpenAsDraft=$false
 )
 
 . (Join-Path $PSScriptRoot common.ps1)
@@ -90,20 +88,9 @@ catch {
 $resp | Write-Verbose
 
 if ($resp.Count -gt 0) {
-  $existingPr = $resp[0]
-  $existingUrl = $existingPr.html_url
-  $existingNumber = $existingPr.number
-  $existingTitle = $existingPr.title
-  LogDebug "Pull request already exists $existingUrl"
+  LogDebug "Pull request already exists $($resp[0].html_url)"
   # setting variable to reference the pull request by number
-  Write-Host "##vso[task.setvariable variable=Submitted.PullRequest.Number]$existingNumber"
-  if ($AddBuildSummary) {
-    $summaryPath = New-TemporaryFile
-    $summaryMarkdown = "**PR:** [Azure/$RepoName#$existingNumber]($existingUrl)"
-    $summaryMarkdown += "`n**Title:** $existingTitle"
-    $summaryMarkdown | Out-File $summaryPath
-    Write-Host "##vso[task.addattachment type=Distributedtask.Core.Summary;name=Existing Pull Request;]$summaryPath"
-  }
+  Write-Host "##vso[task.setvariable variable=Submitted.PullRequest.Number]$($resp[0].number)"
 }
 else {
   try {
@@ -119,14 +106,12 @@ else {
       -AuthToken $AuthToken
 
     $resp | Write-Verbose
-    $prNumber = $resp.number
-    $prUrl = $resp.html_url
-    LogDebug "Pull request created $prUrl"
+    LogDebug "Pull request created https://github.com/$RepoOwner/$RepoName/pull/$($resp.number)"
   
     $prOwnerUser = $resp.user.login
 
     # setting variable to reference the pull request by number
-    Write-Host "##vso[task.setvariable variable=Submitted.PullRequest.Number]$prNumber"
+    Write-Host "##vso[task.setvariable variable=Submitted.PullRequest.Number]$($resp.number)"
 
     # ensure that the user that was used to create the PR is not attempted to add as a reviewer
     # we cast to an array to ensure that length-1 arrays actually stay as array values
@@ -134,28 +119,20 @@ else {
     $cleanedTeamReviewers = @(SplitParameterArray -members $TeamReviewers) | ? { $_ -ne $prOwnerUser -and $null -ne $_ }
 
     if ($cleanedUsers -or $cleanedTeamReviewers) {
-      Add-GitHubPullRequestReviewers -RepoOwner $RepoOwner -RepoName $RepoName -PrNumber $prNumber `
+      Add-GitHubPullRequestReviewers -RepoOwner $RepoOwner -RepoName $RepoName -PrNumber $resp.number `
       -Users $cleanedUsers -Teams $cleanedTeamReviewers -AuthToken $AuthToken
     }
 
     if ($CloseAfterOpenForTesting) {
       $prState = "closed"
-      LogDebug "Updating $prUrl state to closed because this was only testing."
+      LogDebug "Updating https://github.com/$RepoOwner/$RepoName/pull/$($resp.number) state to closed because this was only testing."
     }
     else {
       $prState = "open"
     }
 
-    Update-GitHubIssue -RepoOwner $RepoOwner -RepoName $RepoName -IssueNumber $prNumber `
+    Update-GitHubIssue -RepoOwner $RepoOwner -RepoName $RepoName -IssueNumber $resp.number `
     -State $prState -Labels $PRLabels -Assignees $Assignees -AuthToken $AuthToken
-
-    if ($AddBuildSummary) {
-      $summaryPath = New-TemporaryFile
-      $summaryMarkdown = "**PR:** [Azure/$RepoName#$prNumber]($prUrl)"
-      $summaryMarkdown += "`n**Title:** $PRTitle"
-      $summaryMarkdown | Out-File $summaryPath
-      Write-Host "##vso[task.addattachment type=Distributedtask.Core.Summary;name=Pull Request Created;]$summaryPath"
-    }
   }
   catch {
     LogError "Call to GitHub API failed with exception:`n$_"

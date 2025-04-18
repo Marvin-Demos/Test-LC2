@@ -14,36 +14,32 @@ Deletes the resource group deployed for a service directory from Azure.
 
 ### Default (Default)
 ```
-Remove-TestResources.ps1 [-BaseName <String>] [-SubscriptionId <String>] [[-ServiceDirectory] <String>]
- [-Environment <String>] [-ResourceType <String>] [-ServicePrincipalAuth] [-Force]
- [-RemoveTestResourcesRemainingArguments <Object>] [-ProgressAction <ActionPreference>] [-WhatIf] [-Confirm]
+Remove-TestResources.ps1 [-BaseName <String>] [-SubscriptionId <String>] [-ServiceDirectory] <String>
+ [-Environment <String>] [-Force] [-RemoveTestResourcesRemainingArguments <Object>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### Default+Provisioner
 ```
 Remove-TestResources.ps1 -BaseName <String> -TenantId <String> [-SubscriptionId <String>]
- -ProvisionerApplicationId <String> [-ProvisionerApplicationSecret <String>] [[-ServiceDirectory] <String>]
- [-Environment <String>] [-ResourceType <String>] [-ServicePrincipalAuth] [-Force]
- [-RemoveTestResourcesRemainingArguments <Object>] [-ProgressAction <ActionPreference>] [-WhatIf] [-Confirm]
+ -ProvisionerApplicationId <String> -ProvisionerApplicationSecret <String> [[-ServiceDirectory] <String>]
+ [-Environment <String>] [-Force] [-RemoveTestResourcesRemainingArguments <Object>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### ResourceGroup+Provisioner
 ```
-Remove-TestResources.ps1 [-ResourceGroupName <String>] -TenantId <String> [-SubscriptionId <String>]
- -ProvisionerApplicationId <String> [-ProvisionerApplicationSecret <String>] [[-ServiceDirectory] <String>]
- [-Environment <String>] [-CI] [-ResourceType <String>] [-ServicePrincipalAuth] [-Force]
- [-RemoveTestResourcesRemainingArguments <Object>] [-ProgressAction <ActionPreference>] [-WhatIf] [-Confirm]
+Remove-TestResources.ps1 -ResourceGroupName <String> -TenantId <String> [-SubscriptionId <String>]
+ -ProvisionerApplicationId <String> -ProvisionerApplicationSecret <String> [[-ServiceDirectory] <String>]
+ [-Environment <String>] [-CI] [-Force] [-RemoveTestResourcesRemainingArguments <Object>] [-WhatIf] [-Confirm]
  [<CommonParameters>]
 ```
 
 ### ResourceGroup
 ```
-Remove-TestResources.ps1 [-ResourceGroupName <String>] [-SubscriptionId <String>]
- [[-ServiceDirectory] <String>] [-Environment <String>] [-CI] [-ResourceType <String>] [-ServicePrincipalAuth]
- [-Force] [-RemoveTestResourcesRemainingArguments <Object>] [-ProgressAction <ActionPreference>] [-WhatIf]
- [-Confirm] [<CommonParameters>]
+Remove-TestResources.ps1 -ResourceGroupName <String> [-SubscriptionId <String>] [[-ServiceDirectory] <String>]
+ [-Environment <String>] [-CI] [-Force] [-RemoveTestResourcesRemainingArguments <Object>] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -116,7 +112,7 @@ Type: String
 Parameter Sets: ResourceGroup+Provisioner, ResourceGroup
 Aliases:
 
-Required: False
+Required: True
 Position: Named
 Default value: None
 Accept pipeline input: False
@@ -184,7 +180,7 @@ Type: String
 Parameter Sets: Default+Provisioner, ResourceGroup+Provisioner
 Aliases:
 
-Required: False
+Required: True
 Position: Named
 Default value: None
 Accept pipeline input: False
@@ -197,7 +193,19 @@ specified - in which to discover pre removal script named 'remove-test-resources
 
 ```yaml
 Type: String
-Parameter Sets: (All)
+Parameter Sets: Default
+Aliases:
+
+Required: True
+Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+```yaml
+Type: String
+Parameter Sets: Default+Provisioner, ResourceGroup+Provisioner, ResourceGroup
 Aliases:
 
 Required: False
@@ -225,50 +233,7 @@ Accept wildcard characters: False
 ```
 
 ### -CI
-Run script in CI mode.
-Infers various environment variable names based on CI convention.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: ResourceGroup+Provisioner, ResourceGroup
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ResourceType
-{{ Fill ResourceType Description }}
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: Test
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ServicePrincipalAuth
-Log in with provided Provisioner application credentials.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: False
-Accept pipeline input: False
-Accept wildcard characters: False
-```
+Run script in CI mode. Infers various environment variable names based on CI convention.
 
 ### -Force
 Force removal of resource group without asking for user confirmation
@@ -323,21 +288,6 @@ Prompts you for confirmation before running the cmdlet.
 Type: SwitchParameter
 Parameter Sets: (All)
 Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ProgressAction
-{{ Fill ProgressAction Description }}
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
 
 Required: False
 Position: Named

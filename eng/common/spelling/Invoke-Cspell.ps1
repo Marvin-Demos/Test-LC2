@@ -25,7 +25,7 @@ created in the temp folder, package*.json files will be placed in that folder.
 .PARAMETER LeavePackageInstallCache
 If set the PackageInstallCache will not be deleted. Use if there are multiple
 calls to Invoke-Cspell.ps1 to prevent creating multiple working directories and
-redundant calls `npm ci`.
+redundant calls `npm install`.
 
 .PARAMETER Test
 Run test functions against the script logic
@@ -84,10 +84,10 @@ if (!(Test-Path $CSpellConfigPath)) {
 
 function Test-VersionReportMatches() {
   # Arrange
-  $expectedPackageVersion = '6.12.0'
+  $expectedPackageVersion = '5.12.3'
 
   # Act
-  $actual = &"$PSScriptRoot/Invoke-Cspell.ps1" `
+  $actual = &"$PSSCriptRoot/Invoke-Cspell.ps1" `
     -JobType '--version'
 
   # Assert
@@ -167,10 +167,10 @@ $originalLocation = Get-Location
 
 try {
   Set-Location $PackageInstallCache
-  npm ci | Write-Host
+  npm install | Out-Null
 
   # Use the mutated configuration file when calling cspell
-  $command = "npx cspell $JobType --config $CSpellConfigPath --no-must-find-files --root $SpellCheckRoot --relative"
+  $command = "npx --no-install cspell $JobType --config $CSpellConfigPath --no-must-find-files --root $SpellCheckRoot --relative"
   Write-Host $command
   $cspellOutput = npx  `
     --no-install `
