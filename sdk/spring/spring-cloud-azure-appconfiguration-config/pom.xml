@@ -13,10 +13,9 @@
 	<name>Spring Cloud Azure App Configuration Config</name>
 	<description>Integration of Spring Cloud Config and Azure App Configuration Service</description>
   <properties>
-    <revapi.skip>true</revapi.skip>
-		<codesnippet.skip>false</codesnippet.skip>
-		<javadocDoclet></javadocDoclet>
-		<javadocDocletOptions></javadocDocletOptions>
+    <javadocDoclet></javadocDoclet>
+    <javadocDocletOptions></javadocDocletOptions>
+    <spotless.skip>true</spotless.skip>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -116,6 +115,37 @@
 	</dependencies>
 	<build>
 		<plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <executions>
+          <execution>
+            <id>compile-8</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>8</release>
+              <compilerArgs>
+                <arg>-parameters</arg> <!-- https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x#parameter-name-retention -->
+              </compilerArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>testCompile-8</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <release>8</release>
+              <compilerArgs>
+                <arg>-parameters</arg> <!-- https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x#parameter-name-retention -->
+              </compilerArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>

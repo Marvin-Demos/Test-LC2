@@ -243,7 +243,6 @@ extends:
   template: ../../eng/pipelines/templates/stages/archetype-sdk-client.yml
   parameters:
     ServiceDirectory: spring
-    EnableBatchRelease: true
     Artifacts:
       - name: azure-spring-data-cosmos
         groupId: com.azure
@@ -344,7 +343,6 @@ extends:
         safeName: springcloudazurestarter
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarter }}
       - name: spring-cloud-azure-starter-actuator
@@ -352,7 +350,6 @@ extends:
         safeName: springcloudazurestarteractuator
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarteractuator }}
       - name: spring-cloud-azure-starter-active-directory
@@ -360,7 +357,6 @@ extends:
         safeName: springcloudazurestarteractivedirectory
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarteractivedirectory }}
       - name: spring-cloud-azure-starter-active-directory-b2c
@@ -368,7 +364,6 @@ extends:
         safeName: springcloudazurestarteractivedirectoryb2c
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarteractivedirectoryb2c }}
       - name: spring-cloud-azure-starter-appconfiguration
@@ -376,7 +371,6 @@ extends:
         safeName: springcloudazurestarterappconfiguration
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterappconfiguration }}
       - name: spring-cloud-azure-starter-cosmos
@@ -384,7 +378,6 @@ extends:
         safeName: springcloudazurestartercosmos
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestartercosmos }}
       - name: spring-cloud-azure-starter-data-cosmos
@@ -392,7 +385,6 @@ extends:
         safeName: springcloudazurestarterdatacosmos
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterdatacosmos }}
       - name: spring-cloud-azure-starter-eventhubs
@@ -400,7 +392,6 @@ extends:
         safeName: springcloudazurestartereventhubs
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestartereventhubs }}
       - name: spring-cloud-azure-starter-eventgrid
@@ -408,7 +399,6 @@ extends:
         safeName: springcloudazurestartereventgrid
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestartereventgrid }}
       - name: spring-cloud-azure-starter-keyvault
@@ -416,7 +406,6 @@ extends:
         safeName: springcloudazurestarterkeyvault
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterkeyvault }}
       - name: spring-cloud-azure-starter-keyvault-certificates
@@ -424,7 +413,6 @@ extends:
         safeName: springcloudazurestarterkeyvaultcertificates
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterkeyvaultcertificates }}
       - name: spring-cloud-azure-starter-keyvault-secrets
@@ -432,7 +420,6 @@ extends:
         safeName: springcloudazurestarterkeyvaultsecrets
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterkeyvaultsecrets }}
       - name: spring-cloud-azure-starter-servicebus
@@ -440,7 +427,6 @@ extends:
         safeName: springcloudazurestarterservicebus
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterservicebus }}
       - name: spring-cloud-azure-starter-servicebus-jms
@@ -448,7 +434,6 @@ extends:
         safeName: springcloudazurestarterservicebusjms
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterservicebusjms }}
       - name: spring-cloud-azure-starter-storage
@@ -456,7 +441,6 @@ extends:
         safeName: springcloudazurestarterstorage
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterstorage }}
       - name: spring-cloud-azure-starter-storage-blob
@@ -464,7 +448,6 @@ extends:
         safeName: springcloudazurestarterstorageblob
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterstorageblob }}
       - name: spring-cloud-azure-starter-storage-file-share
@@ -472,7 +455,6 @@ extends:
         safeName: springcloudazurestarterstoragefileshare
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterstoragefileshare }}
       - name: spring-cloud-azure-starter-storage-queue
@@ -480,7 +462,6 @@ extends:
         safeName: springcloudazurestarterstoragequeue
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterstoragequeue }}
       - name: spring-cloud-azure-starter-integration-eventhubs
@@ -488,7 +469,6 @@ extends:
         safeName: springcloudazurestarterintegrationeventhubs
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterintegrationeventhubs }}
       - name: spring-cloud-azure-starter-integration-servicebus
@@ -496,7 +476,6 @@ extends:
         safeName: springcloudazurestarterintegrationservicebus
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterintegrationservicebus }}
       - name: spring-cloud-azure-starter-integration-storage-queue
@@ -504,7 +483,6 @@ extends:
         safeName: springcloudazurestarterintegrationstoragequeue
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterintegrationstoragequeue }}
       - name: spring-cloud-azure-stream-binder-servicebus-core
@@ -536,7 +514,6 @@ extends:
         safeName: springcloudazurestarterstreameventhubs
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterstreameventhubs }}
       - name: spring-cloud-azure-starter-stream-servicebus
@@ -544,7 +521,6 @@ extends:
         safeName: springcloudazurestarterstreamservicebus
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterstreamservicebus }}
       - name: spring-cloud-azure-starter-jdbc-mysql
@@ -552,7 +528,6 @@ extends:
         safeName: springcloudazurestarterjdbcmysql
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterjdbcmysql }}
       - name: spring-cloud-azure-starter-jdbc-postgresql
@@ -560,7 +535,6 @@ extends:
         safeName: springcloudazurestarterjdbcpostgresql
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterjdbcpostgresql }}
       - name: spring-cloud-azure-starter-redis
@@ -568,36 +542,40 @@ extends:
         safeName: springcloudazurestarterredis
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
-        skipUpdatePackageJson: true
         skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterredis }}
       - name: spring-cloud-azure-appconfiguration-config
         groupId: com.azure.spring
         safeName: springcloudazureappconfigurationconfig
-        skipPublishDocGithubIo: true
-        skipPublishDocMs: true
+        skipPublishDocGithubIo: false
+        skipPublishDocMs: false
+        skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazureappconfigurationconfig }}
       - name: spring-cloud-azure-appconfiguration-config-web
         groupId: com.azure.spring
         safeName: springcloudazureappconfigurationconfigweb
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
+        skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazureappconfigurationconfigweb }}
       - name: spring-cloud-azure-feature-management
         groupId: com.azure.spring
         safeName: springcloudazurefeaturemanagement
-        skipPublishDocGithubIo: true
-        skipPublishDocMs: true
+        skipPublishDocGithubIo: false
+        skipPublishDocMs: false
+        skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurefeaturemanagement }}
       - name: spring-cloud-azure-feature-management-web
         groupId: com.azure.spring
         safeName: springcloudazurefeaturemanagementweb
-        skipPublishDocGithubIo: true
-        skipPublishDocMs: true
+        skipPublishDocGithubIo: false
+        skipPublishDocMs: false
+        skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurefeaturemanagementweb }}
       - name: spring-cloud-azure-starter-appconfiguration-config
         groupId: com.azure.spring
         safeName: springcloudazurestarterappconfigurationconfig
         skipPublishDocGithubIo: true
         skipPublishDocMs: true
+        skipVerifyChangelog: true
         releaseInBatch: ${{ parameters.release_springcloudazurestarterappconfigurationconfig }}

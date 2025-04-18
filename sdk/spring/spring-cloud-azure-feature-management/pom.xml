@@ -28,7 +28,7 @@
     </developer>
   </developers>
   <properties>
-    <revapi.skip>true</revapi.skip>
+    <spotless.skip>true</spotless.skip>
   </properties>
   <dependencies>
     <dependency>
@@ -65,6 +65,37 @@
   </dependencies>
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <executions>
+          <execution>
+            <id>compile-8</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <configuration>
+              <release>8</release>
+              <compilerArgs>
+                <arg>-parameters</arg> <!-- https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x#parameter-name-retention -->
+              </compilerArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>testCompile-8</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <release>8</release>
+              <compilerArgs>
+                <arg>-parameters</arg> <!-- https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x#parameter-name-retention -->
+              </compilerArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
