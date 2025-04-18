@@ -64,6 +64,9 @@ parameters:
     default: $(TestVersionSupport)
   - name: OSName
     type: string
+  - name: UseFederatedAuth
+    type: boolean
+    default: false
 
 jobs:
   - job:
@@ -99,7 +102,7 @@ jobs:
         # This will contain things such as heap dumps hprofs if testing hit OutOfMemory errors, log files captured
         # during testing if tests failed, and linting reports.
         - output: pipelineArtifact
-          artifactName: troubleshooting-$(System.StageName)-$(System.JobName)
+          artifactName: troubleshooting-$(System.StageName)-$(System.JobName)-$(System.JobAttempt)
           targetPath: $(System.DefaultWorkingDirectory)/troubleshooting
           displayName: 'Capture troubleshooting artifacts'
           condition: and(not(succeeded()), eq(variables['HAS_TROUBLESHOOTING'], 'true'))
@@ -124,6 +127,8 @@ jobs:
               SubscriptionConfiguration: ${{ parameters.CloudConfig.SubscriptionConfiguration }}
               SubscriptionConfigurations: ${{ parameters.CloudConfig.SubscriptionConfigurations }}
               EnvVars: ${{ parameters.EnvVars }}
+              ${{ if eq('true', parameters.UseFederatedAuth) }}:
+                SubscriptionConfigurationFilePaths: ${{ parameters.CloudConfig.SubscriptionConfigurationFilePaths }}
 
           - ${{ if parameters.TestResourceDirectories }}:
               - ${{ each directory in parameters.TestResourceDirectories }}:
@@ -156,7 +161,7 @@ jobs:
           TestVersionSupport: ${{ parameters.TestVersionSupport }}
           TestEnvVars:
             AZURE_TEST_MODE: ${{ parameters.TestMode }}
-            AZURE_VERSION_OVERRIDE_TESTS: ${{ parameters.TestVersionSupport }}
+            VERSION_OVERRIDE_TESTS: ${{ parameters.TestVersionSupport }}
             ${{ each var in parameters.EnvVars }}:
               ${{ var.key }}: ${{ var.value }}
 

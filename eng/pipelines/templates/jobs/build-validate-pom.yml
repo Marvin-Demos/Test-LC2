@@ -26,11 +26,6 @@ jobs:
       image: $(LINUXVMIMAGE)
       os: linux
 
-    strategy:
-      matrix:
-        Client Libraries:
-          ArtifactName: 'packages'
-
     steps:
       - template: /eng/common/pipelines/templates/steps/sparse-checkout.yml
         parameters:
@@ -66,7 +61,7 @@ jobs:
       - template: /eng/pipelines/templates/steps/install-reporting-tools.yml
 
       - ${{ each artifact in parameters.Artifacts }}:
-        - task: Maven@3
+        - task: Maven@4
           displayName: 'Prepare POM: ${{artifact.groupId}}:${{artifact.name}}'
           inputs:
             mavenPomFile: sdk/${{parameters.ServiceDirectory}}/${{artifact.name}}/pom.xml
@@ -93,4 +88,4 @@ jobs:
       - template: /eng/common/pipelines/templates/steps/publish-1es-artifact.yml
         parameters:
           ArtifactPath: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: '$(ArtifactName)'
+          ArtifactName: 'packages'
