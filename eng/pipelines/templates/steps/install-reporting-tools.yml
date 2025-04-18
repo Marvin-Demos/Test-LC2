@@ -5,7 +5,7 @@ parameters:
   JdkVersion: $(JavaBuildVersion)
 
 steps:
-  - task: Maven@4
+  - task: Maven@3
     displayName: 'Install reporting tools'
     inputs:
       mavenPomFile: ./eng/code-quality-reports/pom.xml
