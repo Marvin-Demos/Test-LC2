@@ -11,8 +11,6 @@ authorization:
   suffix: generated
 azure-kusto:
   service: kusto
-azurelargeinstance:
-  service: largeinstance
 cdn:
   suffix: generated
 compute:
@@ -23,10 +21,6 @@ containerregistry:
   suffix: generated
 containerservice:
   suffix: generated
-containerservice/Microsoft.ContainerService/aks:
-  suffix: generated
-containerservice/Microsoft.ContainerService/fleet:
-  service: containerservicefleet
 cosmos-db:
   service: cosmos
   suffix: generated
@@ -40,8 +34,6 @@ datalake-analytics:
   service: datalakeanalytics
 datalake-store:
   service: datalakestore
-developerhub:
-  service: devhub
 dnc:
   service: delegatednetwork
 dns:
@@ -49,25 +41,8 @@ dns:
 eventhub:
   service: eventhubs
   suffix: generated
-fist:
-  service: iotfirmwaredefense
-graphservicesprod:
-  service: graphservices
-hdinsight/Microsoft.HDInsight/HDInsightOnAks:
-  service: hdinsight
-  suffix: containers
-help:
-  service: selfhelp
-hybridaks:
-  service: hybridcontainerservice
 keyvault:
   suffix: generated
-liftrastronomer:
-  service: astro
-liftrqumulo:
-  service: qumulo
-loadtestservice:
-  service: loadtesting
 machinelearningservices:
   service: machinelearning
 monitor:
@@ -78,34 +53,20 @@ mysql:
   service: mysqlflexibleserver
 network:
   suffix: generated
-newrelic:
-  service: newrelicobservability
-offazurespringboot:
-  service: springappdiscovery
 operationalinsights:
   service: loganalytics
-oracle:
-  service: oracledatabase
-paloaltonetworks:
-  suffix: ngfw
 postgresql:
   service: postgresqlflexibleserver
-postgresqlhsc:
-  service: cosmosdbforpostgresql
 privatedns:
   suffix: generated
 redis:
   suffix: generated
 resources:
   suffix: generated
-riskiq:
-  service: defendereasm
 service-map:
   service: servicemap
 servicebus:
   suffix: generated
-solutions:
-  service: managedapplications
 sql:
   suffix: generated
 storage:
@@ -117,7 +78,3 @@ vmware:
 web:
   service: appservice
   suffix: generated
-workloads/Microsoft.Workloads/SAPDiscoverySites:
-  service: migrationdiscoverysap
-workloads/Microsoft.Workloads/SAPVirtualInstance:
-  service: workloadssapvirtualinstance

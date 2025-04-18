@@ -12,32 +12,31 @@ ARTIFACT_FORMAT = None
 OUTPUT_FOLDER_FORMAT = None
 
 # Constant parameters
-MAVEN_URL = "https://repo1.maven.org/maven2/{group_id}/{artifact_id}/{version}/{artifact_id}-{version}.jar"
+MAVEN_URL = 'https://repo1.maven.org/maven2/{group_id}/{artifact_id}/{version}/{artifact_id}-{version}.jar'
 
-SDK_ROOT = "../../../"  # related to file dir
-AUTOREST_CORE_VERSION = "3.9.7"
-AUTOREST_JAVA = "@autorest/java@4.1.29"
-DEFAULT_VERSION = "1.0.0-beta.1"
-GROUP_ID = "com.azure.resourcemanager"
-API_SPECS_FILE = "api-specs.yaml"
+SDK_ROOT = '../../../'  # related to file dir
+AUTOREST_CORE_VERSION = '3.8.1'
+AUTOREST_JAVA = '@autorest/java@4.0.58'
+DEFAULT_VERSION = '1.0.0-beta.1'
+GROUP_ID = 'com.azure.resourcemanager'
+API_SPECS_FILE = 'api-specs.yaml'
 
-CI_FILE_FORMAT = "sdk/{0}/ci.yml"
-POM_FILE_FORMAT = "sdk/{0}/pom.xml"
-README_FORMAT = "specification/{0}/resource-manager/readme.md"
-JAR_FORMAT = "sdk/{service}/{artifact_id}/target/{artifact_id}-{version}.jar"
-CHANGELOG_FORMAT = "sdk/{service}/{artifact_id}/CHANGELOG.md"
+CI_FILE_FORMAT = 'sdk/{0}/ci.yml'
+POM_FILE_FORMAT = 'sdk/{0}/pom.xml'
+README_FORMAT = 'specification/{0}/resource-manager/readme.md'
+JAR_FORMAT = 'sdk/{service}/{artifact_id}/target/{artifact_id}-{version}.jar'
+CHANGELOG_FORMAT = 'sdk/{service}/{artifact_id}/CHANGELOG.md'
 
-MODELERFOUR_ARGUMENTS = "--modelerfour.additional-checks=false --modelerfour.lenient-model-deduplication=true"
-FLUENTLITE_ARGUMENTS = "{0} --azure-arm --verbose --sdk-integration --generate-samples --fluent=lite --java.fluent=lite --java.license-header=MICROSOFT_MIT_SMALL".format(
-    MODELERFOUR_ARGUMENTS
-)
+MODELERFOUR_ARGUMENTS = '--modelerfour.additional-checks=false --modelerfour.lenient-model-deduplication=true'
+FLUENTLITE_ARGUMENTS = '{0} --azure-arm --verbose --sdk-integration --generate-samples --fluent=lite --java.fluent=lite --java.license-header=MICROSOFT_MIT_SMALL'.format(
+    MODELERFOUR_ARGUMENTS)
 
-CI_HEADER = """\
+CI_HEADER = '''\
 # NOTE: Please refer to https://aka.ms/azsdk/engsys/ci-yaml before editing this file.
 
-"""
+'''
 
-CI_FORMAT = """\
+CI_FORMAT = '''\
 trigger:
   branches:
     include:
@@ -67,17 +66,14 @@ pr:
       - sdk/{0}/pom.xml
       - sdk/{0}/{1}/pom.xml
 
-parameters: []
-
 extends:
   template: ../../eng/pipelines/templates/stages/archetype-sdk-client.yml
   parameters:
     ServiceDirectory: {0}
-    EnableBatchRelease: true
     Artifacts: []
-"""
+'''
 
-POM_FORMAT = """\
+POM_FORMAT = '''\
 <!-- Copyright (c) Microsoft Corporation. All rights reserved.
      Licensed under the MIT License. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -89,10 +85,48 @@ POM_FORMAT = """\
   <packaging>pom</packaging>
   <version>1.0.0</version><!-- Need not change for every release-->
 
-  <modules>
-    <module>{artifact_id}</module>
-  </modules>
-</project>
-"""
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <modules>
+      </modules>
 
-POM_MODULE_FORMAT = "<module>{0}</module>\n"
+      <dependencies>
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.5</version> <!-- {{x-version-update;org.jacoco:jacoco-maven-plugin;external_dependency}} -->
+            <executions>
+              <execution>
+                <id>report-aggregate</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>report-aggregate</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${{project.reporting.outputDirectory}}/test-coverage</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>{artifact_id}</module>
+      </modules>
+    </profile>
+  </profiles>
+</project>
+'''
+
+POM_MODULE_FORMAT = '<module>{0}</module>\n'

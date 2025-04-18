@@ -9,36 +9,13 @@
 param(
   [Parameter(Mandatory=$true)][string]$BuildOutputDirectory,
   # ArtifactsList will be using ('${{ convertToJson(parameters.Artifacts) }}' | ConvertFrom-Json | Select-Object name, groupId)
-  [Parameter(Mandatory=$false)][array] $ArtifactsList,
-  [Parameter(Mandatory=$false)][string] $PackageInfoDir = $null
+  [Parameter(Mandatory=$true)][array] $ArtifactsList
 )
 . "${PSScriptRoot}/../common/scripts/common.ps1"
 
 Write-Host "BuildOutputDirectory=$($BuildOutputDirectory)"
 Write-Host "BuildOutputDirectory contents"
 Get-ChildItem -Path $BuildOutputDirectory -Recurse -Name
-
-if (-not $ArtifactsList) {
-  $ArtifactsList = @()
-}
-
-if ($ArtifactsList.Count -eq 0) {
-  if (-not $PackageInfoDir -or (-not (Test-Path -Path $PackageInfoDir))) {
-    LogError "ArtifactsList was empty and PackageInfoDir was null or incorrect."
-    exit(1)
-  }
-  Write-Host "Artifacts List was empty, getting Artifacts from PackageInfoDir=$PackageInfoDir"
-  [array]$packageInfoFiles = Get-ChildItem -Path $PackageInfoDir "*.json"
-  foreach($packageInfoFile in $packageInfoFiles) {
-    $packageInfoJson = Get-Content $packageInfoFile -Raw
-    $packageInfo = ConvertFrom-Json $packageInfoJson
-    $ArtifactsList += New-Object PSObject -Property @{
-                          groupId = $packageInfo.Group
-                          name    = $packageInfo.ArtifactName
-                      }
-
-  }
-}
 
 Write-Host ""
 Write-Host "ArtifactsList:"
