@@ -33,8 +33,6 @@
     <url>https://github.com/Azure/azure-sdk-for-java/issues</url>
   </issueManagement>
   <properties>
-    <!-- Enables fail on deprecated API usage. -->
-    <compiler.failondeprecatedstatus/>
     <spotless.skip>true</spotless.skip>
   </properties>
   <dependencies>
@@ -420,6 +418,11 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version> <!-- {x-version-update;org.apache.maven.plugins:maven-compiler-plugin;external_dependency} -->
+        <configuration>
+          <compilerArgs>
+            <arg>-Xlint:-options</arg>
+          </compilerArgs>
+        </configuration>
         <executions>
           <execution>
             <id>compile-8</id>
