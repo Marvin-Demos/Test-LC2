@@ -34,7 +34,7 @@ param()
 
 # Since we're skipping Management for the moment, only look for files with certain parents. These
 # limitations will vanish once Management track is updated.
-$ValidParents = ("azure-sdk-parent", "azure-client-sdk-parent", "azure-data-sdk-parent", "azure-perf-test-parent", "azure-cosmos-parent")
+$ValidParents = ("azure-sdk-parent", "azure-client-sdk-parent", "azure-data-sdk-parent", "azure-perf-test-parent", "azure-cosmos-spark_3_2-12", "io.clientcore:clientcore-parent")
 
 # SpringSampleParents is necessary for the spring samples which have to build using the spring-boot-starter-parent BOM.
 # The problem with this is, it's a BOM file and the spring dependencies are pulled in through that which means any
@@ -48,7 +48,7 @@ $SamplesPath = Resolve-Path ($PSScriptRoot + "/../../samples")
 $SdkRoot = Resolve-Path ($PSScriptRoot + "/../../sdk")
 
 # Not all POM files have a parent entry
-$PomFilesIgnoreParent = ("$($Path)\parent\pom.xml")
+# $PomFilesIgnoreParent = ("$($Path)\parent\pom.xml")
 $script:FoundError = $false
 $DependencyTypeCurrent = "current"
 $DependencyTypeDependency = "dependency"
@@ -57,6 +57,10 @@ $DependencyTypeForError = "$($DependencyTypeCurrent)|$($DependencyTypeDependency
 $UpdateTagFormat = "{x-version-update;<groupId>:<artifactId>;$($DependencyTypeForError)}"
 $UseVerboseLogging = $PSBoundParameters['Debug'] -or $PSBoundParameters['Verbose']
 
+if ($UseVerboseLogging) {
+    Write-Host "SdkRoot=$SdkRoot"
+}
+
 Install-ModuleIfNotInstalled "powershell-yaml" "0.4.1" | Import-Module
 
 $StartTime = $(get-date)
@@ -64,7 +68,7 @@ $StartTime = $(get-date)
 # This is the for the bannedDependencies include exceptions. All <include> entries need to be of the
 # form <include>groupId:artifactId:[version]</include> which locks to a specific version. The exception
 # to this is the blanket, wildcard include for com.azure and com.microsoft.azure libraries.
-$ComAzureAllowlistIncludes = ("com.azure:*", "com.azure.resourcemanager:*", "com.microsoft.azure:*", "com.azure.spring:*", "io.clientcore:*")
+$ComAzureAllowlistIncludes = ("com.azure:*", "com.azure.v2:*", "com.azure.resourcemanager:*", "com.microsoft.azure:*", "com.azure.spring:*", "io.clientcore:*")
 
 function Join-With-NewLine([string]$msg, [string]$append)
 {
@@ -150,7 +154,14 @@ function Get-ArtifactsList-Per-Service-Directory {
 
     # Get all of the yml files under sdk/
     $ymlFiles = Get-ChildItem -Path $SdkRoot -Recurse -Depth 3 -File -Filter "ci*yml"
+    if (-not $ymlFiles) {
+        Write-Error "Unable to get yml files for the repository. If this is a sparse-checkout please ensure '**/*.yml' is one of the paths."
+        exit 1
+    }
     foreach ($ymlFile in $ymlFiles) {
+        if ($UseVerboseLogging) {
+            Write-Host "Processing yml file: $ymlFile"
+        }
         # The ci.cosmos.yml lives in spring and is used to test the cosmos spring library. Its exception
         # will be moved once things are corrected.
         if ($ymlFile.FullName.Split([IO.Path]::DirectorySeparatorChar) -contains "resourcemanagerhybrid" -or
@@ -175,6 +186,9 @@ function Get-ArtifactsList-Per-Service-Directory {
                 Write-Error "Processing yml file $($ymlFile.FullName)"
                 Write-Error "$ymlPath already contains an Artifact entry for $libFullName"
             }
+            elseif ($UseVerboseLogging) {
+                Write-Host "    Adding Artifact: $libFullName"
+            }
         }
         # These list of modules per sdk/<ServiceDirectory> has to be verified to be using the
         # latest version of other modules in the same ServiceDirectory which includes AdditionModules.
@@ -189,6 +203,9 @@ function Get-ArtifactsList-Per-Service-Directory {
                     Write-Error "Processing yml file $($ymlFile.FullName)"
                     Write-Error "$ymlPath already contains an AdditionalModule entry for $libFullName"
                 }
+            }
+            elseif ($UseVerboseLogging) {
+                Write-Host "    Adding AdditionalModules: $libFullName"
             }
         }
     }
@@ -235,6 +252,13 @@ function Build-Dependency-Hash-From-File {
         {
             try {
                 [Dependency]$dep = [Dependency]::new($line)
+                # This is the case where there is no current version but dependency isn't
+                # "unreleased_" or "beta_" meaning that the line is either incorrect or
+                # has an invalid format
+                if (-not $dep.curVer -and (-not $dep.Id.StartsWith("unreleased_")) -and (-not $dep.Id.StartsWith("beta_"))) {
+                    Write-Error-With-Color "Invalid dependency line='$($line) in file=$($depFile) has no current version and is not unreleased_ or beta_.`nPlease ensure the format is <groupId>:<artifactId>;<dependencyVer>;<currentVer> and the seperators are semicolons (;)"
+                    $script:FoundError = $true
+                }
                 if ($depHash.ContainsKey($dep.id))
                 {
                     Write-Error-With-Color "Error: Duplicate dependency encountered. '$($dep.id)' defined in '$($depFile)' already exists in the dependency list which means it is defined in multiple version_*.txt files."
@@ -245,6 +269,7 @@ function Build-Dependency-Hash-From-File {
             }
             catch {
                 Write-Error-With-Color "Invalid dependency line='$($line) in file=$($depFile)"
+                $script:FoundError = $true
             }
         }
         else
@@ -261,6 +286,7 @@ function Build-Dependency-Hash-From-File {
             }
             catch {
                 Write-Error-With-Color "Invalid external dependency line='$($line) in file=$($depFile)"
+                $script:FoundError = $true
             }
         }
     }
@@ -493,13 +519,35 @@ $ArtifactsPerSD = [ordered]@{};
 Get-ArtifactsList-Per-Service-Directory $ArtifactsPerSD
 
 # Create one dependency hashtable for libraries we build (the groupIds will make the entries unique) and
-# one hash for external dependencies
+# one hash for external dependencies. If there are errors building the dependency hash, output those and
+# exit. There's no point in scanning the pom files if any of the files have invalid or duplicate entries.
 $libHash = @{}
-Build-Dependency-Hash-From-File $libHash $Path\eng\versioning\version_client.txt $false
-Build-Dependency-Hash-From-File $libHash $Path\eng\versioning\version_data.txt $false
+$verClientFile = Join-Path $Path "eng/versioning/version_client.txt"
+Build-Dependency-Hash-From-File $libHash $verClientFile $false
+if ($script:FoundError)
+{
+    Write-Error-With-Color "There were errors encountered building the dependency hash from version_client.txt. Please fix errors and run the script again."
+    Write-Error-With-Color "This script can be run locally from the root of the repo. .\eng\versioning\pom_file_version_scanner.ps1"
+    exit 1
+}
+$verDataFile = Join-Path $Path "eng/versioning/version_data.txt"
+Build-Dependency-Hash-From-File $libHash $verDataFile $false
+if ($script:FoundError)
+{
+    Write-Error-With-Color "There were errors encountered building the dependency hash from version_data.txt. Please fix errors and run the script again."
+    Write-Error-With-Color "This script can be run locally from the root of the repo. .\eng\versioning\pom_file_version_scanner.ps1"
+    exit 1
+}
 
 $extDepHash = @{}
-Build-Dependency-Hash-From-File $extDepHash $Path\eng\versioning\external_dependencies.txt $true
+$extDepFile = Join-Path $Path "eng/versioning/external_dependencies.txt"
+Build-Dependency-Hash-From-File $extDepHash $extDepFile $true
+if ($script:FoundError)
+{
+    Write-Error-With-Color "There were errors encountered building the external dependency has from external_dependencies.txt. Please fix errors and run the script again."
+    Write-Error-With-Color "This script can be run locally from the root of the repo. .\eng\versioning\pom_file_version_scanner.ps1"
+    exit 1
+}
 
 # Loop through every client and data POM file and perform the verification. Right now
 # management isn't being processed, when it is the checks below will go away and every
@@ -541,25 +589,18 @@ Get-ChildItem -Path $Path -Filter pom*.xml -Recurse -File | ForEach-Object {
         return
     }
 
-    if ($PomFilesIgnoreParent -contains $pomFile)
+    $xmlPomFile = New-Object xml
+    $xmlPomFile.Load($pomFile)
+    if ($ValidParents -notcontains $xmlPomFile.project.parent.artifactId -and $ValidParents -notcontains $xmlPomFile.project.artifactId)
     {
-        $xmlPomFile = New-Object xml
-        $xmlPomFile.Load($pomFile)
-
-    } else {
-        $xmlPomFile = New-Object xml
-        $xmlPomFile.Load($pomFile)
-        if ($ValidParents -notcontains $xmlPomFile.project.parent.artifactId)
+        if ($SpringSampleParents -contains $xmlPomFile.project.parent.artifactId)
         {
-            if ($SpringSampleParents -contains $xmlPomFile.project.parent.artifactId)
-            {
-                Assert-Spring-Sample-Version-Tags $libHash $extDepHash $xmlPomFile
-            }
-            # This may look odd but ForEach-Object is a cmdlet which means that "continue"
-            # exits the loop altogether and "return" behaves like continue for a particular
-            # loop
-            return
+            Assert-Spring-Sample-Version-Tags $libHash $extDepHash $xmlPomFile
         }
+        # This may look odd but ForEach-Object is a cmdlet which means that "continue"
+        # exits the loop altogether and "return" behaves like continue for a particular
+        # loop
+        return
     }
 
     $hasError = $false
@@ -777,6 +818,64 @@ Get-ChildItem -Path $Path -Filter pom*.xml -Recurse -File | ForEach-Object {
         }
     }
 
+    foreach($signatureNode in $xmlPomFile.GetElementsByTagName("signature"))
+    {
+        $artifactId = $signatureNode.artifactId
+        $groupId = $signatureNode.groupId
+        # If the artifactId and groupId are both empty then check to see if this
+        # is part of a configuration entry.
+        if (!$artifactId -and !$groupId)
+        {
+            $isPartOfConfig = Confirm-Node-Is-Part-Of-Configuration $signatureNode
+            if (!$isPartOfConfig)
+            {
+                $hasError = $true
+                # Because this particular case is harder to track down, print the OuterXML which is effectively the entire tag
+                $potentialLogMessage = Join-With-NewLine $potentialLogMessage "Error: signature is missing version element and/or artifactId and groupId elements signatureNode=$($signatureNode.OuterXml)"
+            }
+            continue
+        }
+        # signatures should always have an artifact but may not have a groupId
+        if (!$groupId)
+        {
+            $hasError = $true
+            $potentialLogMessage = Join-With-NewLine $potentialLogMessage "Error: signature $($artifactId) is missing its groupId tag"
+            continue
+        }
+        $versionNode = $signatureNode.GetElementsByTagName("version")[0]
+        if (!$versionNode)
+        {
+            $hasError = $true
+            $potentialLogMessage = Join-With-NewLine $potentialLogMessage "Error: signature is missing version element for groupId=$($groupId), artifactId=$($artifactId) should be <version></version> <!-- {x-version-update;$($groupId):$($artifactId);current|dependency|external_dependency<select one>} -->"
+            continue
+        }
+        if ($versionNode.NextSibling -and $versionNode.NextSibling.NodeType -eq "Comment")
+        {
+            # unfortunately because there are POM exceptions we need to wildcard the group which may be
+            # something like <area>_groupId
+            if ($versionNode.NextSibling.Value.Trim() -notmatch "{x-version-update;(.+)?$($groupId):$($artifactId);\w+}")
+            {
+                $hasError = $true
+                $potentialLogMessage = Join-With-NewLine $potentialLogMessage "Error: signature version update tag for groupId=$($groupId), artifactId=$($artifactId) should be <!-- {x-version-update;$($groupId):$($artifactId);current|dependency|external_dependency<select one>} -->"
+            }
+            else
+            {
+                # verify the version tag and version are correct
+                $retVal = Test-Dependency-Tag-And-Version $libHash $extDepHash $versionNode.InnerText.Trim() $versionNode.NextSibling.Value
+                if ($retVal)
+                {
+                    $hasError = $true
+                    $potentialLogMessage = Join-With-NewLine $potentialLogMessage "$($retVal)"
+                }
+            }
+        }
+        else
+        {
+            $hasError = $true
+            $potentialLogMessage = Join-With-NewLine $potentialLogMessage "Error: Missing signature version update tag for groupId=$($groupId), artifactId=$($artifactId). The tag should be <!-- {x-version-update;$($groupId):$($artifactId);current|dependency|external_dependency<select one>} -->"
+        }
+    }
+
     # This is for the allowlist dependencies. Fetch the banned dependencies
     foreach($bannedDependencies in $xmlPomFile.GetElementsByTagName("bannedDependencies"))
     {
@@ -906,5 +1005,7 @@ if ($script:FoundError)
 {
     Write-Error-With-Color "There were errors encountered during execution. Please fix errors and run the script again."
     Write-Error-With-Color "This script can be run locally from the root of the repo. .\eng\versioning\pom_file_version_scanner.ps1"
-    exit(1)
+    exit 1
 }
+# no errors, ensure it's exiting 0
+exit 0
